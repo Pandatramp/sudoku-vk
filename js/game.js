@@ -84,38 +84,23 @@ window.Game = {
     this.initAutoScale();
 
     const handleTabVisibility = () => {
-      console.log('👁️ Tab visibility changed, hidden:', document.hidden);
       
       if (document.hidden) {
-        console.log('📴 Tab hidden: stopping music and timer');
         if (this.state.musicEnabled) this.stopBGM();
         this.stopTimer();
         this.updateGameplayAPI(false);
       } else {
-        console.log('📱 Tab visible: resuming...');
         // ✅ Возвращаем музыку и таймер ТОЛЬКО если SDK не держит игру на паузе
         if (!this._sdkPaused) {
           if (this.state.musicEnabled) { 
-            console.log('🎵 Attempting to resume music...');
-            console.log('  - bgmSource:', this.bgmSource ? 'exists' : 'null');
-            console.log('  - audioCtx state:', this.audioCtx?.state);
-            
             if (this.audioCtx && this.audioCtx.state === 'suspended') {
               this.audioCtx.resume().catch(() => {});
             }
             
             // ✅ Небольшая задержка + проверка
             setTimeout(() => { 
-              console.log('🎵 setTimeout: checking conditions...');
-              console.log('  - musicEnabled:', this.state.musicEnabled);
-              console.log('  - bgmSource:', this.bgmSource ? 'exists' : 'null');
-              console.log('  - menu hidden:', this.screens.menu.classList.contains('hidden'));
-              
               if (this.state.musicEnabled && !this.bgmSource && this.screens.menu.classList.contains('hidden')) {
-                console.log('✅ Calling playBGM()');
                 this.playBGM(); 
-              } else {
-                console.log('❌ Not calling playBGM, conditions not met');
               }
             }, 300);
           }
@@ -123,11 +108,9 @@ window.Game = {
           if (this.screens.menu.classList.contains('hidden') && 
               this.screens.pause.classList.contains('hidden') && 
               this.screens.win.classList.contains('hidden')) {
-            console.log('▶️ Resuming timer');
             this.startTimer();
           }
         } else {
-          console.log('⏸️ SDK paused, not resuming');
         }
       }
     };
@@ -135,7 +118,6 @@ window.Game = {
     document.addEventListener('visibilitychange', handleTabVisibility);
     document.addEventListener('webkitvisibilitychange', handleTabVisibility);
     
-    console.log('🎉 [init] ПОЛНОСТЬЮ ЗАВЕРШЁН');
   },
 
   cacheDOM() {
@@ -165,9 +147,7 @@ window.Game = {
     try {
       const res = await fetch('sounds/music.ogg');
       this.sounds = { music: await this.audioCtx.decodeAudioData(await res.arrayBuffer()) };
-      console.log('✅ Музыка загружена в Web Audio');
     } catch (e) {
-      console.error('❌ Ошибка загрузки музыки:', e);
       this.sounds = {};
     }
   },
@@ -187,35 +167,29 @@ window.Game = {
   
   async playBGM() {
     if (!this.state.musicEnabled || !this.audioCtx) {
-      console.log('❌ playBGM: music disabled or no audioCtx');
       return;
     }
     
     // ✅ Если файл ещё не загрузился — ждём и пробуем снова
     if (!this.sounds?.music) {
-      console.log('⏳ playBGM: music file not loaded yet, retrying...');
       setTimeout(() => this.playBGM(), 100);
       return;
     }
     
     // ✅ КРИТИЧНО: если уже играет — НЕ запускаем второй раз
     if (this.bgmSource) {
-      console.log('⚠️ playBGM: уже играет, пропускаем');
       return;
     }
 
     // ✅ Разблокируем AudioContext при первом клике/возврате на вкладку
     if (this.audioCtx.state === 'suspended') {
-      console.log('🔓 Resuming AudioContext...');
       await this.audioCtx.resume().catch(e => console.warn('Resume failed:', e));
     }
     
     if (this.audioCtx.state !== 'running') {
-      console.warn('⚠️ AudioContext not running, state:', this.audioCtx.state);
       return;
     }
 
-    console.log('▶️ Создаём источник музыки...');
     this.bgmSource = this.audioCtx.createBufferSource();
     this.bgmSource.buffer = this.sounds.music;
     this.bgmSource.loop = true;
@@ -231,12 +205,10 @@ window.Game = {
     this.bgmSource.start(0, this.bgmOffset);
 
     this.bgmSource.onended = () => {
-      console.log('🎵 Музыка закончилась (onended)');
       this.bgmSource = null;
       this.bgmOffset = 0;
     };
     
-    console.log('✅ Музыка запущена успешно');
   },
   
   stopBGM() {
