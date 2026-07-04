@@ -110,5 +110,39 @@ window.PlatformAPI = {
       );
       return result?.result === true || result?.result === 'rewarded';
     } catch (e) { return false; }
-  }
+  },
+
+   
+  async sendLeaderboardScore(score) {
+    if (!this.initialized) {
+      console.log('📊 Leaderboard: VK не инициализирован, пропускаем');
+      return;
+    }
+  
+    try {
+      await vkBridge.send('VKWebAppAddToHomeScreen'); // Проверка доступности
+      await vkBridge.send('VKWebAppSetViewSettings', {
+        action: 'set_score',
+        score: parseInt(score) || 0
+      });
+      console.log(`📊 Leaderboard: отправлен результат ${score} уровней`);
+    } catch (e) {
+      console.warn('❌ Leaderboard: не удалось отправить результат:', e);
+    }
+  },
+
+  async getLeaderboardScore() {
+    if (!this.initialized) return 0;
+    
+    try {
+      const result = await vkBridge.send('VKWebAppGetCommunityInfo', {
+        group_id: 0, // Для мини-приложений оставляем 0
+        fields: ['members_count']
+      });
+      // VK сам хранит результаты, мы просто отправляем новые
+      return 0;
+    } catch (e) {
+      return 0;
+    }
+  },
 };

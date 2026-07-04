@@ -558,6 +558,7 @@ window.Game = {
       this.clearSavedGame();
       this.saveProgress();
       PlatformAPI.saveProgress(this.state.level);
+      PlatformAPI.sendLeaderboardScore(this.state.level);
 
       const wasMusicPlaying = this.state.musicEnabled && !!this.bgmSource;
       if (wasMusicPlaying) this.stopBGM();
