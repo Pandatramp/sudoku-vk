@@ -833,26 +833,7 @@ window.Game = {
   }, 
   hideHintModal() { this.screens.hintConfirm.classList.add('hidden'); },
   
-  confirmRestart() {
-    this.hideRestartModal();
-    if (window.YandexSDK) {
-      window.YandexSDK.adv.showFullscreenAdv({
-        callbacks: {
-          onClose: () => {
-            this.clearSavedGame();
-            this.startLevel();
-            this.updateGameplayAPI(true);
-          }
-        }
-      });
-    } else {
-      this.clearSavedGame();
-      this.startLevel();
-      this.updateGameplayAPI(true);
-    }
-  },
-
-  async confirmRestart() {
+   async confirmRestart() {
     this.hideRestartModal();
     this.clearSavedGame();
     await PlatformAPI.showInterstitial();
