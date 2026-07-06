@@ -76,6 +76,19 @@ window.Game = {
     this.bindEvents();
     this.showMenu();
 
+    // ✅ Восстанавливаем количество подсказок из сохранённой игры
+    const savedGame = localStorage.getItem('sudoku_saved_game');
+    if (savedGame) {
+      try {
+        const gs = JSON.parse(savedGame);
+        // ✅ Используем !== undefined, чтобы 0 не превращался в 3
+        if (gs && gs.hintsAvailable !== undefined) {
+          this.state.hintsAvailable = gs.hintsAvailable;
+          this.updateHintUI();
+        }
+      } catch(e) {}
+    }
+
     document.body.classList.add('loaded');
 
     this.initAudio();
@@ -90,14 +103,12 @@ window.Game = {
         this.stopTimer();
         this.updateGameplayAPI(false);
       } else {
-        // ✅ Возвращаем музыку и таймер ТОЛЬКО если SDK не держит игру на паузе
         if (!this._sdkPaused) {
           if (this.state.musicEnabled) { 
             if (this.audioCtx && this.audioCtx.state === 'suspended') {
               this.audioCtx.resume().catch(() => {});
             }
             
-            // ✅ Небольшая задержка + проверка
             setTimeout(() => { 
               if (this.state.musicEnabled && !this.bgmSource && this.screens.menu.classList.contains('hidden')) {
                 this.playBGM(); 
@@ -110,7 +121,6 @@ window.Game = {
               this.screens.win.classList.contains('hidden')) {
             this.startTimer();
           }
-        } else {
         }
       }
     };
@@ -868,17 +878,28 @@ window.Game = {
     }
     if (!gs) return;
 
-    this.state.level = gs.level; this.state.puzzle = gs.puzzle; this.state.solution = gs.solution; this.state.playerBoard = gs.playerBoard;
-    this.state.notes = gs.notes || Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => [])); 
-    this.state.timer = gs.timer; 
-    this.state.hintsAvailable = gs.hintsAvailable || 3; this.state.history = gs.history || []; this.state.selectedCell = null;
-    this.state.isPaused = false; this.state.isNotesMode = false; this.els.btnNotes.classList.remove('active'); this.updateHintUI();
+    this.state.level = gs.level;
+    this.state.puzzle = gs.puzzle;
+    this.state.solution = gs.solution;
+    this.state.playerBoard = gs.playerBoard;
+    this.state.notes = gs.notes || Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => []));
+    this.state.timer = gs.timer;
+    // ✅ Исправлено: используем !== undefined вместо || 3
+    this.state.hintsAvailable = gs.hintsAvailable !== undefined ? gs.hintsAvailable : 3;
+    this.state.history = gs.history || [];
+    this.state.selectedCell = null;
+    this.state.isPaused = false;
+    this.state.isNotesMode = false;
+    this.els.btnNotes.classList.remove('active');
+    this.updateHintUI();
     
-    this.renderBoard(); this.els.levelNum.textContent = this.state.level; this.els.timer.textContent = this.formatTime(this.state.timer);
+    this.renderBoard();
+    this.els.levelNum.textContent = this.state.level;
+    this.els.timer.textContent = this.formatTime(this.state.timer);
     this.showGame(); 
-    this.startTimer(); this.playBGM();
+    this.startTimer();
+    this.playBGM();
     
-    // ✅ GameplayAPI: игра загружена и активна
     this.updateGameplayAPI(true);
   },
   
